@@ -19,12 +19,12 @@ io.on("connection", async (socket) => {
 
   // ✅ 과거 메시지 불러오기
   const { data, error } = await supabase
-    .from("messages")
+    .from("messages2")
     .select("*")
     .order("created_at", { ascending: true });
 
   if (data) {
-    socket.emit("load messages", data);
+    socket.emit("load messages2", data);
   }
 
   // ✅ 새 메시지 처리
@@ -35,7 +35,7 @@ io.on("connection", async (socket) => {
     };
 
     // DB 저장
-    await supabase.from("messages").insert([messageData]);
+    await supabase.from("messages2").insert([messageData]);
 
     // 실시간 전송
     io.emit("chat message", messageData);
