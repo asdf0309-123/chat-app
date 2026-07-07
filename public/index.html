@@ -152,6 +152,9 @@
     <aside class="sidebar">
       <h3>Online</h3>
       <div id="userLabel">-</div>
+      <div id="rouletteBtn" style="margin-top:10px; cursor:pointer; color:#4f46e5;">
+        🎰 룰렛
+      </div>
     </aside>
 
     <main class="chat">
@@ -265,6 +268,54 @@
     document.getElementById('loginName').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') enter();
     });
+
+    // ===== Roulette Feature =====
+    document.getElementById('rouletteBtn').onclick = () => {
+      openRoulette();
+    };
+
+    function openRoulette() {
+      const messages = document.getElementById('messages');
+
+      const box = document.createElement('div');
+      box.className = 'msg other';
+
+      box.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div>룰렛 항목 (쉼표로 구분)</div>
+          <input id="rouletteInput" placeholder="예: 치킨, 피자, 햄버거" />
+          <button onclick="startRoulette()">START</button>
+          <div id="rouletteResult"></div>
+        </div>
+      `;
+
+      messages.appendChild(box);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function startRoulette() {
+      const inputEl = document.getElementById('rouletteInput');
+      if (!inputEl) return;
+      const input = inputEl.value;
+      const items = input.split(',').map(v => v.trim()).filter(v => v);
+
+      if (items.length === 0) return;
+
+      const resultEl = document.getElementById('rouletteResult');
+      let count = 0;
+      let last = '';
+
+      const interval = setInterval(() => {
+        last = items[Math.floor(Math.random() * items.length)];
+        resultEl.textContent = last;
+        count++;
+
+        if (count > 20) {
+          clearInterval(interval);
+          resultEl.textContent = '🎯 결과: ' + last;
+        }
+      }, 100);
+    }
   </script>
 
 </body>
