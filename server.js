@@ -9,7 +9,7 @@ const io = new Server(server);
 
 const supabase = createClient(
   "https://gktycpztevwrduqkchsxv.supabase.co",
-  "sb_secret_f_-lLofZx0L3ZxgKFRVeJg_GO_fN1Fu"
+  process.env.SUPABASE_KEY || "sb_secret_f_-lLofZx0L3ZxgKFRVeJg_GO_fN1Fu"
 );
 
 app.use(express.static("public"));
