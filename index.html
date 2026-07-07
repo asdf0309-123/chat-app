@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat App</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#0f172a;
+      --panel:#111827;
+      --border:#1f2937;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --accent:#4f46e5;
+    }
+
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      font-family: Inter, system-ui, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    .overlay {
+      position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+      background:rgba(2,6,23,0.9);
+      z-index:10;
+    }
+
+    .loginBox {
+      background:var(--panel);
+      border:1px solid var(--border);
+      padding:24px;
+      border-radius:10px;
+      display:flex; gap:10px; flex-direction:column; width:280px;
+    }
+
+    .loginBox input {
+      background:#020617; border:1px solid var(--border); border-radius:8px;
+      padding:12px; color:var(--text); outline:none;
+    }
+
+    .loginBox button {
+      background:var(--accent); border:none; border-radius:8px; padding:12px; color:#fff; cursor:pointer;
+    }
+
+    .app { display:flex; height:100vh; }
+
+    .sidebar {
+      width:200px;
+      background:var(--panel);
+      border-right:1px solid var(--border);
+      padding:16px;
+    }
+
+    .chat { flex:1; display:flex; flex-direction:column; }
+
+    .header {
+      padding:16px;
+      border-bottom:1px solid var(--border);
+      background:var(--panel);
+      font-weight:600;
+    }
+
+    .messages {
+      flex:1;
+      overflow:auto;
+      padding:20px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .msg {
+      max-width:60%;
+      padding:10px 14px;
+      border-radius:12px;
+      background:#1f2937;
+    }
+
+    .msg.user {
+      align-self:flex-end;
+      background:var(--accent);
+    }
+
+    .msg.other {
+      align-self:flex-start;
+      background:#1f2937;
+    }
+
+    .name {
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:4px;
+    }
+
+    .inputBar {
+      display:flex;
+      border-top:1px solid var(--border);
+      background:var(--panel);
+      padding:10px;
+      gap:8px;
+    }
+
+    .username {
+      width:140px;
+      background:#020617;
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:12px;
+      color:var(--text);
+      outline:none;
+    }
+
+    .inputBar input {
+      flex:1;
+      background:#020617;
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:12px;
+      color:var(--text);
+      outline:none;
+    }
+
+    .inputBar button {
+      background:var(--accent);
+      border:none;
+      padding:0 16px;
+      border-radius:8px;
+      color:white;
+      cursor:pointer;
+    }
+
+    .inputBar button:hover { opacity:0.9; }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+
+    <aside class="sidebar">
+      <h3>Online</h3>
+      <div id="userLabel">-</div>
+    </aside>
+
+    <main class="chat">
+      <div class="header">CHAT</div>
+
+      <div class="messages" id="messages"></div>
+
+      <div class="inputBar">
+        <input id="input" placeholder="message..." />
+        <button onclick="send()">SEND</button>
+      </div>
+    </main>
+
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="loginBox">
+      <div>ENTER USERNAME</div>
+      <input id="loginName" placeholder="username" />
+      <button onclick="enter()">ENTER</button>
+    </div>
+  </div>
+
+  <script>
+    const socket = io();
+    let currentUser = '';
+
+    function enter() {
+      const val = document.getElementById('loginName').value.trim();
+      if (!val) return;
+      currentUser = val;
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('userLabel').textContent = val;
+      socket.emit('join', currentUser);
+    }
+
+    function send() {
+      const input = document.getElementById('input');
+      const messages = document.getElementById('messages');
+      if (!input.value.trim()) return;
+
+      const name = currentUser || 'anon';
+
+      socket.emit('chat', { name, text: input.value });
+      input.value = '';
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    socket.on('chat', (data) => {
+      const messages = document.getElementById('messages');
+
+      const el = document.createElement('div');
+      el.className = data.name === currentUser ? 'msg user' : 'msg other';
+
+      const nameEl = document.createElement('div');
+      nameEl.className = 'name';
+      nameEl.textContent = data.name;
+
+      const textEl = document.createElement('div');
+      textEl.textContent = data.text;
+
+      el.appendChild(nameEl);
+      el.appendChild(textEl);
+
+      messages.appendChild(el);
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    socket.on('system', (text) => {
+      const messages = document.getElementById('messages');
+      const el = document.createElement('div');
+      el.className = 'msg other';
+      el.textContent = text;
+      messages.appendChild(el);
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    socket.on('users', (list) => {
+      document.getElementById('userLabel').textContent = list.join(', ');
+    });
+
+    // Enter to send
+    document.getElementById('input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        send();
+      }
+    });
+
+    // Enter key for login
+    document.getElementById('loginName').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') enter();
+    });
+  </script>
+
+</body>
+</html>
