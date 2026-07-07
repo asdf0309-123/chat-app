@@ -7,8 +7,9 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Use correct project base URL (strip /rest/v1)
 const supabase = createClient(
-  "https://gktycpztevwrduqkchsxv.supabase.co",
+  "https://gktycpztewrduqkchsxv.supabase.co",
   process.env.SUPABASE_KEY || "sb_secret_f_-lLofZx0L3ZxgKFRVeJg_GO_fN1Fu"
 );
 
