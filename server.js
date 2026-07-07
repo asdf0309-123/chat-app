@@ -24,7 +24,7 @@ io.on("connection", async (socket) => {
     .order("created_at", { ascending: true });
 
   if (data) {
-    socket.emit("load messages2", data);
+    socket.emit("load messages", data);
   }
 
   // ✅ 새 메시지 처리
