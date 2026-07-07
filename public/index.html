@@ -196,7 +196,8 @@
       const messages = document.getElementById('messages');
 
       const el = document.createElement('div');
-      const username = data.username || data.name;
+      // fallback to avoid empty usernames breaking UI
+      const username = data.username || data.name || 'anon';
       el.className = username === currentUser ? 'msg user' : 'msg other';
 
       const nameEl = document.createElement('div');
@@ -204,7 +205,7 @@
       nameEl.textContent = username;
 
       const textEl = document.createElement('div');
-      textEl.textContent = data.text;
+      textEl.textContent = data.text || '';
 
       el.appendChild(nameEl);
       el.appendChild(textEl);
@@ -217,11 +218,11 @@
     socket.on('load messages', (list) => {
       const messages = document.getElementById('messages');
       messages.innerHTML = '';
-      // normalize DB rows to UI shape
+      // normalize DB rows to UI shape with fallbacks
       list.forEach((msg) => {
         addMessage({
-          username: msg.username,
-          text: msg.text
+          username: msg.username || 'anon',
+          text: msg.text || ''
         });
       });
     });
