@@ -47,6 +47,18 @@ io.on("connection", async (socket) => {
 
     io.emit("chat message", messageData);
   });
+
+  // join / leave system messages
+  socket.on("join", (username) => {
+    socket.username = username || "anon";
+    io.emit("system", `${socket.username} joined`);
+  });
+
+  socket.on("disconnect", () => {
+    if (socket.username) {
+      io.emit("system", `${socket.username} left`);
+    }
+  });
 });
 
 const PORT = process.env.PORT || 3000;
