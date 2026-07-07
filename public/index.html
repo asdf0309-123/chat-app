@@ -281,9 +281,10 @@
       box.className = 'msg other';
 
       box.innerHTML = `
-        <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
           <div>룰렛 항목 (쉼표로 구분)</div>
           <input id="rouletteInput" placeholder="예: 치킨, 피자, 햄버거" />
+          <canvas id="rouletteCanvas" width="220" height="220"></canvas>
           <button onclick="startRoulette()">START</button>
           <div id="rouletteResult"></div>
         </div>
@@ -296,25 +297,69 @@
     function startRoulette() {
       const inputEl = document.getElementById('rouletteInput');
       if (!inputEl) return;
-      const input = inputEl.value;
-      const items = input.split(',').map(v => v.trim()).filter(v => v);
-
+      const items = inputEl.value.split(',').map(v => v.trim()).filter(v => v);
       if (items.length === 0) return;
 
+      const canvas = document.getElementById('rouletteCanvas');
+      const ctx = canvas.getContext('2d');
       const resultEl = document.getElementById('rouletteResult');
-      let count = 0;
-      let last = '';
 
-      const interval = setInterval(() => {
-        last = items[Math.floor(Math.random() * items.length)];
-        resultEl.textContent = last;
-        count++;
+      const colors = ['#4f46e5','#22c55e','#eab308','#ef4444','#06b6d4','#a855f7'];
+      let angle = 0;
+      let speed = 0.35;
+      let spinning = true;
 
-        if (count > 20) {
-          clearInterval(interval);
-          resultEl.textContent = '🎯 결과: ' + last;
+      function draw() {
+        const slice = (2 * Math.PI) / items.length;
+        ctx.clearRect(0,0,220,220);
+
+        items.forEach((item, i) => {
+          const start = angle + i * slice;
+          const end = start + slice;
+
+          ctx.beginPath();
+          ctx.moveTo(110,110);
+          ctx.arc(110,110,110,start,end);
+          ctx.fillStyle = colors[i % colors.length];
+          ctx.fill();
+
+          ctx.save();
+          ctx.translate(110,110);
+          ctx.rotate(start + slice/2);
+          ctx.fillStyle = '#fff';
+          ctx.font = '12px sans-serif';
+          ctx.fillText(item, 60, 5);
+          ctx.restore();
+        });
+
+        // pointer
+        ctx.beginPath();
+        ctx.moveTo(110,0);
+        ctx.lineTo(100,20);
+        ctx.lineTo(120,20);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+      }
+
+      function spin() {
+        if (!spinning) return;
+        angle += speed;
+        speed *= 0.97;
+
+        if (speed < 0.003) {
+          spinning = false;
+          const slice = (2 * Math.PI) / items.length;
+          const idx = Math.floor(((2*Math.PI - (angle % (2*Math.PI))) / slice)) % items.length;
+          resultEl.textContent = '🎯 결과: ' + items[idx];
+          return;
         }
-      }, 100);
+
+        draw();
+        requestAnimationFrame(spin);
+      }
+
+      draw();
+      spin();
     }
   </script>
 
