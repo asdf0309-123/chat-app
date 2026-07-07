@@ -187,20 +187,21 @@
 
       const name = currentUser || 'anon';
 
-      socket.emit('chat', { name, text: input.value });
+      socket.emit('chat message', { username: name, text: input.value });
       input.value = '';
       messages.scrollTop = messages.scrollHeight;
     }
 
-    socket.on('chat', (data) => {
+    function addMessage(data) {
       const messages = document.getElementById('messages');
 
       const el = document.createElement('div');
-      el.className = data.name === currentUser ? 'msg user' : 'msg other';
+      const username = data.username || data.name;
+      el.className = username === currentUser ? 'msg user' : 'msg other';
 
       const nameEl = document.createElement('div');
       nameEl.className = 'name';
-      nameEl.textContent = data.name;
+      nameEl.textContent = username;
 
       const textEl = document.createElement('div');
       textEl.textContent = data.text;
@@ -210,6 +211,16 @@
 
       messages.appendChild(el);
       messages.scrollTop = messages.scrollHeight;
+    }
+
+    // load history
+    socket.on('load messages', (list) => {
+      list.forEach(addMessage);
+    });
+
+    // realtime
+    socket.on('chat message', (data) => {
+      addMessage(data);
     });
 
     socket.on('system', (text) => {
