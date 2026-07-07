@@ -23,6 +23,8 @@ io.on("connection", async (socket) => {
     .select("*")
     .order("created_at", { ascending: true });
 
+  console.log("LOAD:", data, error);
+
   if (data) {
     socket.emit("load messages", data);
   }
@@ -35,7 +37,16 @@ io.on("connection", async (socket) => {
     };
 
     // DB 저장
-    await supabase.from("message2").insert([messageData]);
+    const { data: inserted, error: insertError } = await supabase
+      .from("message2")
+      .insert([messageData])
+      .select();
+
+    if (insertError) {
+      console.error("INSERT ERROR:", insertError);
+    } else {
+      console.log("INSERT SUCCESS:", inserted);
+    }
 
     // 실시간 전송
     io.emit("chat message", messageData);
