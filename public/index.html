@@ -292,6 +292,49 @@
 
       messages.appendChild(box);
       messages.scrollTop = messages.scrollHeight;
+
+      // preview draw on input
+      const inputEl = box.querySelector('#rouletteInput');
+      inputEl.addEventListener('input', () => drawPreview());
+
+      function drawPreview() {
+        const items = inputEl.value.split(',').map(v => v.trim()).filter(v => v);
+        const canvas = box.querySelector('#rouletteCanvas');
+        const ctx = canvas.getContext('2d');
+        const colors = ['#4f46e5','#22c55e','#eab308','#ef4444','#06b6d4','#a855f7'];
+
+        ctx.clearRect(0,0,220,220);
+        if (items.length === 0) return;
+
+        const slice = (2 * Math.PI) / items.length;
+        items.forEach((item, i) => {
+          const start = i * slice;
+          const end = start + slice;
+          ctx.beginPath();
+          ctx.moveTo(110,110);
+          ctx.arc(110,110,110,start,end);
+          ctx.fillStyle = colors[i % colors.length];
+          ctx.fill();
+
+          ctx.save();
+          ctx.translate(110,110);
+          ctx.rotate(start + slice/2);
+          ctx.fillStyle = '#fff';
+          ctx.font = '12px sans-serif';
+          ctx.fillText(item, 60, 5);
+          ctx.restore();
+        });
+
+        // pointer at top pointing down
+        ctx.beginPath();
+        ctx.moveTo(110,0);
+        ctx.lineTo(100,20);
+        ctx.lineTo(120,20);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+      }
+
+      drawPreview();
     }
 
     function startRoulette() {
@@ -332,11 +375,11 @@
           ctx.restore();
         });
 
-        // pointer (downward)
+        // pointer at top pointing down
         ctx.beginPath();
-        ctx.moveTo(110,220);
-        ctx.lineTo(100,200);
-        ctx.lineTo(120,200);
+        ctx.moveTo(110,0);
+        ctx.lineTo(100,20);
+        ctx.lineTo(120,20);
         ctx.fillStyle = '#fff';
         ctx.fill();
       }
