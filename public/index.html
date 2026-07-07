@@ -278,7 +278,7 @@
       const messages = document.getElementById('messages');
 
       const box = document.createElement('div');
-      box.className = 'msg other';
+      box.className = 'msg system';
 
       box.innerHTML = `
         <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
@@ -332,11 +332,11 @@
           ctx.restore();
         });
 
-        // pointer
+        // pointer (downward)
         ctx.beginPath();
-        ctx.moveTo(110,0);
-        ctx.lineTo(100,20);
-        ctx.lineTo(120,20);
+        ctx.moveTo(110,220);
+        ctx.lineTo(100,200);
+        ctx.lineTo(120,200);
         ctx.fillStyle = '#fff';
         ctx.fill();
       }
