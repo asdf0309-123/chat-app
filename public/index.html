@@ -215,6 +215,8 @@
 
     // load history
     socket.on('load messages', (list) => {
+      const messages = document.getElementById('messages');
+      messages.innerHTML = '';
       list.forEach(addMessage);
     });
 
